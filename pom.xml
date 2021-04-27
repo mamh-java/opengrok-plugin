@@ -19,7 +19,7 @@
         <slf4jVersion>1.7.30</slf4jVersion>
         <java.level>8</java.level>
 
-        <lucene.version>8.6.2</lucene.version>
+        <lucene.version>8.8.2</lucene.version>
         <mavenjavadocplugin.version>3.0.1</mavenjavadocplugin.version>
         <compileSource>1.8</compileSource>
         <compileTarget>1.8</compileTarget>
