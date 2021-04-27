@@ -97,12 +97,17 @@ public class IndexerBuilder extends Builder implements SimpleBuildStep {
          *  -U http://10.0.12.92:8080/github-other-master/
          *
          */
+        FilePath src = workspace.child(srcRoot);
+        FilePath data = workspace.child(dataRoot);
+        src.mkdirs();
+        data.mkdirs();
 
-        String[] strArray={"-s", "./src_root/github-other-master",
-                            "-d", "./data_root/github-other-master",
+        String[] strArray={"-s", src.toString(),
+                            "-d", data.toString(),
                 "-H", "-P", "-S", "-G",
-                "-W", "./data_root/github-other-master/configuration.xml",
-                "-U", "http://10.0.12.92:8080/github-other-master/"
+                "-W", data.toString() + "/configuration.xml",
+                "-U", "http://10.0.12.92:8080/github-other-master/",
+                "-c", "/work/brightma/github/ctags/ctags", "-v"
         };
         Indexer.main(strArray);
     }
