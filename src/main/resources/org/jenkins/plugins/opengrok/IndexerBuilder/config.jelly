@@ -1,0 +1,26 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:entry title="${%src root}" field="srcRoot">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="${%data root}" field="dataRoot">
+        <f:textbox />
+    </f:entry>
+
+    <f:entry title="${%Enable history}" field="historyEnabled">
+        <f:checkbox />
+    </f:entry>
+
+    <f:entry title="${%projects}" field="projectsEnabled">
+        <f:checkbox />
+    </f:entry>
+
+    <f:entry title="${%Assign commit tags}" field="assignTags">
+        <f:checkbox />
+    </f:entry>
+
+    <f:entry title="${%verbose}" field="verbose">
+        <f:checkbox />
+    </f:entry>
+</j:jelly>
