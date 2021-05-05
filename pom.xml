@@ -23,7 +23,7 @@
         <mavenjavadocplugin.version>3.0.1</mavenjavadocplugin.version>
         <compileSource>1.8</compileSource>
         <compileTarget>1.8</compileTarget>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
         <jersey.version>2.30.1</jersey.version>
         <jackson.version>2.10.1</jackson.version>
         <junit.version>5.4.2</junit.version>
@@ -33,11 +33,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.opengrok</groupId>
-            <artifactId>opengrok</artifactId>
-            <version>1.4.9</version>
-        </dependency>
 
 <!--        <dependency>-->
 <!--            <groupId>org.junit.jupiter</groupId>-->
@@ -269,4 +264,204 @@
             <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
+
+
+    <build>
+        <plugins>
+            <!-- jflex:generate plugin HAS to be the first one which runs in generate-sources phase!!! -->
+            <plugin>
+                <groupId>de.jflex</groupId>
+                <artifactId>jflex-maven-plugin</artifactId>
+                <version>1.8.2</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <lexDefinitions>
+                                <lexDefinition>${basedir}/target/jflex-sources</lexDefinition>
+                            </lexDefinitions>
+                            <encodingName>UTF-8</encodingName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>2.2.4</version>
+                <configuration>
+                    <includeOnlyProperties>
+                        <includeOnlyProperty>^git.commit.id</includeOnlyProperty>
+                    </includeOnlyProperties>
+                    <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                    </execution>
+                    <execution>
+                        <id>validate-the-git-infos</id>
+                        <goals>
+                            <goal>validateRevision</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-info-properties</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>write-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <outputFile>
+                                ${project.build.outputDirectory}/org/opengrok/indexer/info.properties
+                            </outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.3</version>
+                <executions>
+                    <execution>
+                        <id>perform-git-substitutions</id>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                        <phase>process-resources</phase>
+                        <configuration>
+                            <filesToInclude>
+                                ${project.build.outputDirectory}/org/opengrok/indexer/info.properties
+                            </filesToInclude>
+                            <replacements>
+                                <replacement>
+                                    <token>git.commit.id.abbrev</token>
+                                    <value>changeset_short</value>
+                                </replacement>
+                                <replacement>
+                                    <token>git.commit.id</token>
+                                    <value>changeset</value>
+                                </replacement>
+                            </replacements>
+                            <quiet>false</quiet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.0.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.opengrok.indexer.index.Indexer</mainClass>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                        </manifest>
+                        <manifestEntries>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+                <executions> <!-- so the web module can use test classes from indexer module -->
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>collect-lex-lexh</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <target>
+                                <property name="src.dir" value="src/main/resources"/>
+                                <property name="tgt.dir" value="${basedir}/target/jflex-sources"/>
+                                <ant target="-collect-lex-lexh"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>build-config-files</id>
+                        <phase>process-test-classes</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target unless="skipTests">
+                                <ant target="-post-compile-test"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <!-- Test helper class with name that confuses surefire -->
+                        <exclude>**/TestRepository.java</exclude>
+                    </excludes>
+                    <argLine>@{surefireArgLine}</argLine>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>attach-test-sources</id>
+                        <goals>
+                            <goal>test-jar-no-fork</goal>
+                        </goals>
+                        <configuration>
+                            <skipSource>true</skipSource>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
