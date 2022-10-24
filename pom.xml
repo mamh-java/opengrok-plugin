@@ -192,7 +192,7 @@
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
             <artifactId>workflow-job</artifactId>
             <scope>test</scope>
-            <version>2.26</version>
+            <version>1249.v7d974144cc14</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins.workflow</groupId>
